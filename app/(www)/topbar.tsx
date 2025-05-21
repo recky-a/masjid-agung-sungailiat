@@ -1,5 +1,5 @@
+import PrayerTimes from "@/components/prayer-times";
 import { ThemeToggle } from "@/components/theme-toggle";
-import PrayerTimes from "./prayer-times";
 import SearchBar from "./search-bar";
 
 export default function Topbar() {
