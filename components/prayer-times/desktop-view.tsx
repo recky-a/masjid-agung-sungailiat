@@ -53,7 +53,7 @@ export default function DesktopView({
                 'hover:border-primary hover:scale-[1.01] hover:shadow-md',
                 'hover:bg-primary/10 hover:dark:bg-primary/20',
                 upcomingPrayer.label === prayer.label
-                  ? 'bg-primary text-primary-foreground hover:border-secondary'
+                  ? 'bg-primary text-primary-foreground hover:!bg-primary/90 hover:!text-primary-foreground'
                   : 'bg-muted text-foreground'
               )}
             >
