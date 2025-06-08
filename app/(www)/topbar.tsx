@@ -1,12 +1,12 @@
-import PrayerTimes from "@/components/prayer-times";
-import { ThemeToggle } from "@/components/theme-toggle";
-import SearchBar from "./search-bar";
+import { ThemeToggle } from '@/components/theme-toggle';
+import PrayerSchedule from './prayer-schedule';
+import SearchBar from './search-bar';
 
 export default function Topbar() {
   return (
-    <div className="flex items-center justify-between p-4 gap-2 w-full max-w-full">
+    <div className="flex w-full max-w-full items-center justify-between gap-2 p-4">
       <ThemeToggle />
-      <PrayerTimes />
+      <PrayerSchedule />
       <SearchBar />
     </div>
   );
