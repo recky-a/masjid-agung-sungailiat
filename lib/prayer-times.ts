@@ -1,3 +1,5 @@
+// lib/prayer-times.ts
+
 import { DHUHA_OFFSET_MINUTES } from '@/constants/prayer-constants';
 import { AladhanCalendarDay, LakuApikDailyTimings } from '@/types/api';
 import fs from 'fs/promises';
@@ -96,14 +98,14 @@ async function readPrayerScheduleFromFile(year: string, month: string) {
     const data = JSON.parse(fileContents);
     console.log('✅ Read data from local primary source: Lakuapik JSON');
     return { data, source: 'lakuapik' as const };
-  } catch (error) {
+  } catch {
     console.warn('🟡 Local primary source failed. Attempting fallback...');
     try {
       const fileContents = await fs.readFile(aladhanPath, 'utf8');
       const result = JSON.parse(fileContents);
       console.log('✅ Read data from local fallback source: Aladhan JSON');
       return { data: result.data || result, source: 'aladhan' as const };
-    } catch (fallbackError) {
+    } catch {
       console.error('🔴 Local fallback source failed.');
       return null;
     }
@@ -124,7 +126,7 @@ async function fetchPrayerScheduleFromApi(year: string, month: string) {
     const data = await response.json();
     console.log('✅ Fetched data from remote primary source: Lakuapik API');
     return { data, source: 'lakuapik' as const };
-  } catch (error) {
+  } catch {
     console.warn('🟡 Remote primary source failed. Attempting fallback...');
     try {
       const response = await fetch(endpoints.aladhan, cacheConfig);
@@ -134,7 +136,7 @@ async function fetchPrayerScheduleFromApi(year: string, month: string) {
       if (result.code !== 200) throw new Error('Al-Adhan API returned non-200');
       console.log('✅ Fetched data from remote fallback source: Al-Adhan API');
       return { data: result.data, source: 'aladhan' as const };
-    } catch (fallbackError) {
+    } catch {
       console.error('🔴 Remote fallback source failed.');
       return null;
     }
