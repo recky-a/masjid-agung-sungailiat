@@ -45,28 +45,21 @@ const mapToLocaleFormat = (
     const [sunriseHours, sunriseMinutes] = sunriseTime.split(':').map(Number);
     const dhuhaDate = new Date();
     dhuhaDate.setHours(sunriseHours, sunriseMinutes, 0, 0);
-
-    // Add a consistent offset to sunrise time to calculate Dhuha.
-    // This offset (24 mins) is based on the primary 'lakuapik' data source.
     dhuhaDate.setMinutes(dhuhaDate.getMinutes() + DHUHA_OFFSET_MINUTES);
-
-    const dhuhaHours = dhuhaDate.getHours().toString().padStart(2, '0');
-    const dhuhaMinutes = dhuhaDate.getMinutes().toString().padStart(2, '0');
-    const dhuhaTime = `${dhuhaHours}:${dhuhaMinutes}`;
+    const dhuhaTime = `${dhuhaDate.getHours().toString().padStart(2, '0')}:${dhuhaDate.getMinutes().toString().padStart(2, '0')}`;
     // --- End of Dhuha Time Calculation ---
 
     return {
       imsak: timings.Imsak.split(' ')[0],
       subuh: timings.Fajr.split(' ')[0],
       terbit: sunriseTime,
-      duha: dhuhaTime, // The newly calculated Dhuha time
+      duha: dhuhaTime,
       zuhur: timings.Dhuhr.split(' ')[0],
       asar: timings.Asr.split(' ')[0],
       magrib: timings.Maghrib.split(' ')[0],
       "isya'": timings.Isha.split(' ')[0],
     };
   } else {
-    // This branch already contains the 'dhuha' field from the source
     const timings = dailyData as LakuApikDailyTimings;
     return {
       imsak: timings.imsyak,
@@ -104,15 +97,14 @@ async function readPrayerScheduleFromFile(year: string, month: string) {
     console.log('✅ Read data from local primary source: Lakuapik JSON');
     return { data, source: 'lakuapik' as const };
   } catch (error) {
-    console.warn(`🟡 Local primary source failed. Attempting fallback...`);
+    console.warn('🟡 Local primary source failed. Attempting fallback...');
     try {
       const fileContents = await fs.readFile(aladhanPath, 'utf8');
       const result = JSON.parse(fileContents);
-      const data = result.data || result;
       console.log('✅ Read data from local fallback source: Aladhan JSON');
-      return { data, source: 'aladhan' as const };
+      return { data: result.data || result, source: 'aladhan' as const };
     } catch (fallbackError) {
-      console.error(`🔴 Local fallback source failed.`);
+      console.error('🔴 Local fallback source failed.');
       return null;
     }
   }
@@ -129,62 +121,59 @@ async function fetchPrayerScheduleFromApi(year: string, month: string) {
     const response = await fetch(endpoints.lakuapik, cacheConfig);
     if (!response.ok)
       throw new Error(`Lakuapik API failed: ${response.status}`);
-
     const data = await response.json();
     console.log('✅ Fetched data from remote primary source: Lakuapik API');
     return { data, source: 'lakuapik' as const };
   } catch (error) {
-    console.warn(`🟡 Remote primary source failed. Attempting fallback...`);
+    console.warn('🟡 Remote primary source failed. Attempting fallback...');
     try {
       const response = await fetch(endpoints.aladhan, cacheConfig);
       if (!response.ok)
         throw new Error(`Al-Adhan API failed: ${response.status}`);
-
       const result = await response.json();
       if (result.code !== 200) throw new Error('Al-Adhan API returned non-200');
-
       console.log('✅ Fetched data from remote fallback source: Al-Adhan API');
       return { data: result.data, source: 'aladhan' as const };
     } catch (fallbackError) {
-      console.error(`🔴 Remote fallback source failed.`);
+      console.error('🔴 Remote fallback source failed.');
       return null;
     }
   }
 }
 
 /**
- * Finds daily prayer data from monthly schedule based on source type.
+ * Finds daily prayer data from a monthly schedule.
+ * IMPROVEMENT: This function is now more robust.
  */
 function findDailyData(
-  data: (AladhanCalendarDay | LakuApikDailyTimings)[],
+  monthlyData: (AladhanCalendarDay | LakuApikDailyTimings)[],
   source: 'aladhan' | 'lakuapik',
-  day: string
+  date: Date
 ) {
+  const day = date.getDate();
   if (source === 'aladhan') {
-    const targetDay = parseInt(day, 10);
-    return (data as AladhanCalendarDay[]).find(
-      (d) => parseInt(d.date.gregorian.day, 10) === targetDay
+    return (monthlyData as AladhanCalendarDay[]).find(
+      (d) => parseInt(d.date.gregorian.day, 10) === day
     );
   } else {
-    // Lakuapik data is an array where index = day - 1
-    const index = parseInt(day, 10) - 1;
-    return (data as LakuApikDailyTimings[])[index];
+    // IMPROVEMENT: Find by matching date string instead of relying on array index.
+    const targetDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
+    // FIX: Add a check for `d` to prevent accessing properties on null.
+    return (monthlyData as LakuApikDailyTimings[]).find(
+      (d) => d && d.tanggal === targetDate
+    );
   }
 }
 
-/**
- * Gets the prayer schedule for a specific date, prioritizing local files first, then API as fallback.
- * @param date The date for which to get the prayer schedule.
- * @returns A formatted PrayerTimes object for the given day, or null if all sources fail.
- */
 export async function getPrayerScheduleByDay(
   date: Date
 ): Promise<PrayerTimes | null> {
   const year = date.getFullYear().toString();
   const month = (date.getMonth() + 1).toString();
-  const day = date.getDate().toString();
 
-  // Try local files first, then fallback to API
   let monthlySchedule = await readPrayerScheduleFromFile(year, month);
 
   if (!monthlySchedule) {
@@ -192,18 +181,17 @@ export async function getPrayerScheduleByDay(
     monthlySchedule = await fetchPrayerScheduleFromApi(year, month);
   }
 
-  // If both local and API fail, return null
   if (!monthlySchedule) {
     console.error('🔴 All data sources failed for the requested month');
     return null;
   }
 
   const { data, source } = monthlySchedule;
-  const dailyData = findDailyData(data, source, day);
+  const dailyData = findDailyData(data, source, date);
 
   if (!dailyData) {
     console.error(
-      `Could not find schedule for ${date.toDateString()} in the fetched monthly data.`
+      `Could not find schedule for ${date.toDateString()} in the fetched data.`
     );
     return null;
   }
@@ -211,6 +199,7 @@ export async function getPrayerScheduleByDay(
   return mapToLocaleFormat(dailyData, source);
 }
 
+// ... rest of the file is unchanged
 /**
  * Gets TODAY's prayer schedule.
  */

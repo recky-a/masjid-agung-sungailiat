@@ -16,15 +16,18 @@ export function usePrayerSchedule(
   const handleDayChange = useCallback((newDay: DaySelection) => {
     setSelectedDay(newDay);
     const today = new Date();
-    let date = new Date(today);
+    const date = new Date(today);
 
-    if (newDay === 'yesterday') date.setDate(today.getDate() - 1);
-    else if (newDay === 'tomorrow') date.setDate(today.getDate() + 1);
+    if (newDay === 'yesterday') {
+      date.setDate(today.getDate() - 1);
+    } else if (newDay === 'tomorrow') {
+      date.setDate(today.getDate() + 1);
+    }
 
     setSelectedDate(date);
   }, []);
 
-  const { shortTimeString, getCurrentTimeInMinutes, dateString } = useClock();
+  const { getCurrentTimeInMinutes, dateString } = useClock();
 
   const {
     getCurrentPrayerInfo,
@@ -33,16 +36,13 @@ export function usePrayerSchedule(
     getDayLabel,
   } = usePrayerLogic(
     todayPrayerData,
+    yesterdayPrayerData, // Pass yesterday's data
     tomorrowPrayerData,
     getCurrentTimeInMinutes
   );
 
   const { currentPrayer, nextPrayer, timeToNext } = getCurrentPrayerInfo();
-  const prayerData = getCurrentPrayerData(
-    selectedDay,
-    yesterdayPrayerData,
-    tomorrowPrayerData
-  );
+  const prayerData = getCurrentPrayerData(selectedDay);
 
   return {
     // date & day control
@@ -51,7 +51,6 @@ export function usePrayerSchedule(
     handleDayChange,
 
     // string formatters
-    shortTimeString,
     dateString,
     formatTimeRemaining,
     getDayLabel,
