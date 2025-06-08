@@ -47,7 +47,9 @@ describe('PrayerScheduleUI', () => {
       require('@/hooks/use-media-query').useMediaQuery as jest.Mock
     ).mockReturnValue(true);
     // Mock date to a specific time for consistent results
-    jest.useFakeTimers().setSystemTime(new Date('2025-06-08T12:00:00'));
+    // FIX: Set the time in UTC to ensure the test is timezone-independent.
+    // 05:00 UTC is 12:00 WIB (Asia/Jakarta), which is during Zuhur time.
+    jest.useFakeTimers().setSystemTime(new Date('2025-06-08T05:00:00.000Z'));
   });
 
   afterEach(() => {

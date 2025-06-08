@@ -1,0 +1,60 @@
+# .github/workflows/ci.yml
+
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    # Use a strategy matrix to run jobs for different Node.js versions
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x, 24.x]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # Setup Node.js using the version from the matrix
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      # Step to cache the Next.js build folder
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          # This path is where Next.js stores its cache
+          path: .next/cache
+          # The cache key is based on the runner OS and a hash of the lockfile.
+          # This ensures the cache is invalidated only when dependencies change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}
+          # A restore key to use a partially-matching cache if the lockfile changed slightly
+          restore-keys: |
+            ${{ runner.os }}-nextjs-
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run Linter
+        run: pnpm lint
+
+      - name: Run Tests
+        run: pnpm test --ci
+
+      - name: Run Production Build
+        run: pnpm build
