@@ -53,11 +53,11 @@ export default function MobilePrayerSchedule({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="hover:bg-muted flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
+          className="hover:bg-muted text-md flex items-center gap-2 rounded-lg px-4 py-2"
         >
-          <Calendar className="text-muted-foreground h-5 w-5" />
+          <Calendar className="size-5" />
           <span>Jadwal Sholat</span>
-          <ChevronDownIcon className="h-4 w-4 opacity-70" />
+          <ChevronDownIcon className="size-5 opacity-70" />
         </Button>
       </PopoverTrigger>
 
