@@ -13,7 +13,7 @@ export default function PrayerScheduleUI({
   yesterdayPrayerData: PrayerTimes | null;
   tomorrowPrayerData: PrayerTimes | null;
 }) {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isDesktop = useMediaQuery('(min-width: 768px)'); // md breakpoint
 
   if (isDesktop) {
     return (
