@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Laptop, Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+} from '@/components/ui/dropdown-menu';
+import { Laptop, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 export function ThemeToggle() {
   const { setTheme, theme, resolvedTheme } = useTheme();
@@ -27,28 +27,22 @@ export function ThemeToggle() {
           size="icon"
           aria-label="Ganti tema"
           title={
-            mounted
-              ? `Current theme: ${resolvedTheme || theme}`
-              : "Theme toggle"
+            mounted ? `Tema sekarang: ${resolvedTheme || theme}` : 'Ganti tema'
           }
-          className="h-10 w-10 relative"
+          className="relative size-10"
         >
           {mounted ? (
             <>
               {/* Only show the appropriate icon when mounted */}
-              {resolvedTheme === "dark" && (
-                <Moon className="h-5 w-5 text-yellow-400" />
-              )}
-              {resolvedTheme === "light" && (
-                <Sun className="h-5 w-5 text-orange-500" />
-              )}
-              {resolvedTheme !== "dark" && resolvedTheme !== "light" && (
-                <Laptop className="h-5 w-5 text-gray-500" />
+              {resolvedTheme === 'dark' && <Moon className="size-5" />}
+              {resolvedTheme === 'light' && <Sun className="size-5" />}
+              {resolvedTheme !== 'dark' && resolvedTheme !== 'light' && (
+                <Laptop className="size-5" />
               )}
             </>
           ) : (
             // Use a transparent placeholder with the same dimensions to reserve space
-            <div className="h-5 w-5" aria-hidden="true" />
+            <div className="size-5" aria-hidden="true" />
           )}
           <span className="sr-only">Ganti tema</span>
         </Button>
@@ -56,24 +50,24 @@ export function ThemeToggle() {
       {mounted && (
         <DropdownMenuContent align="end" sideOffset={4}>
           <DropdownMenuItem
-            onClick={() => setTheme("light")}
+            onClick={() => setTheme('light')}
             aria-label="Ganti ke tema terang"
           >
-            <Sun className="mr-2 h-4 w-4 text-orange-500" />
+            <Sun className="mr-2 size-4" />
             <span>Terang</span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() => setTheme("dark")}
+            onClick={() => setTheme('dark')}
             aria-label="Ganti ke tema gelap"
           >
-            <Moon className="mr-2 h-4 w-4 text-yellow-400" />
+            <Moon className="mr-2 size-4" />
             <span>Gelap</span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() => setTheme("system")}
+            onClick={() => setTheme('system')}
             aria-label="Gunakan tema sistem"
           >
-            <Laptop className="mr-2 h-4 w-4 text-gray-500" />
+            <Laptop className="mr-2 size-4" />
             <span>Sistem</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
