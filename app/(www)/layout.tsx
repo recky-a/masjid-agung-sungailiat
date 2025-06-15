@@ -1,13 +1,13 @@
-import Footer from "./footer";
-import Header from "./header";
+import Footer from './footer';
+import Header from './header';
 
 export default function FrontPageLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main>{children}</main>
+      <div className="grow">{children}</div>
       <Footer />
     </div>
   );
